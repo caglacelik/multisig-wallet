@@ -1,1 +1,2 @@
-# multisignature-wallet
+# Ethereum Multisig Wallet
+

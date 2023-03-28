@@ -37,15 +37,14 @@ contract MultiSigWallet {
         _;
     }
 
-    uint maxOwnerCount = 100;
-    address[] public owners;
+    uint8 maxOwnerCount = 100;
+    uint8 public numConfirmsRequired;
+    uint256 index = 0;
+
     mapping(address => bool) public isOwner;
-
-    uint index = 0;
-    mapping(uint => Transaction) public transactions;
-
-    uint public numConfirmsRequired;
-    mapping(uint => mapping(address => bool)) public isConfirmed;
+    mapping(uint256 => Transaction) public transactions;
+    mapping(uint256 => mapping(address => bool)) public isConfirmed;
+    address[] public owners;
 
     struct Transaction {
         address to;
@@ -80,7 +79,7 @@ contract MultiSigWallet {
         emit Deposit(msg.sender, msg.value);
     }
 
-    function createTransaction(address _to, uint _value) public onlyOwner {
+    function createTransaction(address _to, uint _value) external onlyOwner {
         index++;
         transactions[index] = Transaction({
                 to: _to,
@@ -116,7 +115,7 @@ contract MultiSigWallet {
         emit ExecuteTransaction(msg.sender, _index);
     }
 
-    function revokeConfirmation(uint _index) public onlyOwner exist(_index) notExecuted(_index) {
+    function revokeConfirmation(uint _index) external onlyOwner exist(_index) notExecuted(_index) {
         Transaction storage transaction = transactions[_index];
         require(isConfirmed[_index][msg.sender], "tx not confirmed");
 
@@ -140,7 +139,7 @@ contract MultiSigWallet {
         require(isOwner[_owner] == true, "owner not found");
 
         for(uint i=0; i<owners.length-1; i++) {
-            if(isOwner[owners[i]]== true) {
+            if(isOwner[owners[i]] == true) {
                 owners[i] = owners[owners.length-1];
                 owners.pop();
                 break;
@@ -151,15 +150,15 @@ contract MultiSigWallet {
         emit OwnerDeleted(_owner);
     }
 
-    function getOwners() public view returns (address[] memory) {
+    function getOwners() external view returns (address[] memory) {
         return owners;
     }
 
-    function getTransactionCount() public view returns (uint) {
+    function getTransactionCount() external view returns (uint) {
         return index;
     }
 
-    function getTransaction(uint _index) public view 
+    function getTransaction(uint _index) external view 
     returns (
             address to,
             uint value,
